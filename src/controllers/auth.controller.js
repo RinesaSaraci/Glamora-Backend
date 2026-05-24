@@ -18,4 +18,23 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+// CHANGE PASSWORD
+const changePassword = async (req, res) => {
+  try {
+    const result = await authService.changePassword(
+      req.user.id,
+      req.body.oldPassword,
+      req.body.newPassword
+    );
+
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  changePassword,
+};

@@ -3,8 +3,12 @@ const jwt = require("jsonwebtoken");
 
 const generateToken = (user) => {
   return jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET || "sekreti_yt_gullamora_rezervë", // Shtuar një fallback string
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role, // 👈 SHTUAR
+    },
+    process.env.JWT_SECRET,
     { expiresIn: "1d" }
   );
 };

@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const authController = require("../controllers/auth.controller");
-console.log(authController);
-console.log(authController.register);
-console.log(authController.login);
+
+const authMiddleware = require("../middleware/auth.middleware");
+const roleMiddleware = require("../middleware/role.middleware");
+
 /**
  * @swagger
  * /auth/register:
@@ -59,5 +60,78 @@ router.post("/register", authController.register);
  *         description: Login successful
  */
 router.post("/login", authController.login);
+
+/**
+ * @swagger
+ * /auth/change-password:
+ *   post:
+ *     summary: Change password
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPassword
+ *               - newPassword
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ */
+router.post(
+  "/change-password",
+  authMiddleware,
+  authController.changePassword
+);
+/**
+ * @swagger
+ * /auth/profile:
+ *   get:
+ *     summary: Get logged in user profile
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile data
+ */
+router.get("/profile", authMiddleware, (req, res) => {
+  res.json({
+    user: req.user,
+  });
+});
+
+/**
+ * @swagger
+ * /auth/admin:
+ *   get:
+ *     summary: Admin only route
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Admin access granted
+ */
+router.get(
+  "/admin",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  (req, res) => {
+    res.json({
+      message: "Admin panel access granted",
+      user: req.user,
+    });
+  }
+);
 
 module.exports = router;
