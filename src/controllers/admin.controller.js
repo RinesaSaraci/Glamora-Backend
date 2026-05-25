@@ -1,12 +1,24 @@
-const authService = require("../services/auth.service");
+const adminService = require("../services/admin.service");
 
 const deleteUser = async (req, res) => {
   try {
-    const result = await authService.deleteUser(req.params.id);
+    const result = await adminService.deleteUser(req.params.id);
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
 
-module.exports = { deleteUser };
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await adminService.getAllUsers();
+    res.json(users);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+module.exports = {
+  deleteUser,
+  getAllUsers,
+};

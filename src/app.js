@@ -7,6 +7,7 @@ const { swaggerUi, specs } = require("./swagger");
 // ROUTES
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
+const salonRoutes = require("./routes/salon.routes");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -22,6 +23,7 @@ app.use(express.json());
 // =======================
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
+app.use("/salons", salonRoutes);
 
 // =======================
 // TEST ROUTES
@@ -30,7 +32,7 @@ app.get("/", (req, res) => {
   res.send("Glamora API running...");
 });
 
-// get all users (vetëm për test)
+// GET ALL USERS
 app.get("/users", async (req, res) => {
   const users = await prisma.user.findMany({
     select: {

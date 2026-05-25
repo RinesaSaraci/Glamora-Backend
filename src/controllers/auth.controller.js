@@ -11,14 +11,16 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const result = await authService.login(req.body.email, req.body.password);
+    const result = await authService.login(
+      req.body.email,
+      req.body.password
+    );
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
 
-// CHANGE PASSWORD
 const changePassword = async (req, res) => {
   try {
     const result = await authService.changePassword(

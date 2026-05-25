@@ -11,9 +11,25 @@ url      = env("DATABASE_URL")
 }
 
 model User {
-    id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
-  password String
-  role     String @default("USER")
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("USER")
+
+  salons    Salon[]
+
+  createdAt DateTime @default(now())
+}
+
+model Salon {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  city        String
+
+  ownerId     Int
+  owner       User     @relation(fields: [ownerId], references: [id])
+
+  createdAt   DateTime @default(now())
 }
