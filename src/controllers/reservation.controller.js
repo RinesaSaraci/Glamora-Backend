@@ -11,6 +11,16 @@ const createReservation = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields: employeeId, serviceId, date, startTime" });
     }
 
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      return res.status(400).json({ error: "date must be in YYYY-MM-DD format" });
+    }
+
+    const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+    if (!timeRegex.test(startTime)) {
+      return res.status(400).json({ error: "startTime must be in HH:MM format (24h)" });
+    }
+
     const reservation = await reservationService.createReservation(salonId, req.user.id, req.body);
     res.status(201).json(reservation);
   } catch (err) {

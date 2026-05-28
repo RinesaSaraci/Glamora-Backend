@@ -48,6 +48,17 @@ const createReservation = async (salonId, customerId, data) => {
   const endMins = totalEndMinutes % 60;
   const calculatedEndTime = `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
 
+  // 4b. Verify booking fits within scheduled working hours
+  const [schedStartH, schedStartM] = schedule.startTime.split(":").map(Number);
+  const schedStartMin = schedStartH * 60 + schedStartM;
+
+  const [schedEndH, schedEndM] = schedule.endTime.split(":").map(Number);
+  const schedEndMin = schedEndH * 60 + schedEndM;
+
+  if (totalStartMinutes < schedStartMin || totalEndMinutes > schedEndMin) {
+    throw new Error(`Booking must be within employee shift hours: ${schedule.startTime} - ${schedule.endTime}`);
+  }
+
   // 5. SIMPLE CONFLICT CHECK: Verify if there is already an active booking at the same startTime
   const existingConflict = await prisma.reservation.findFirst({
     where: {
