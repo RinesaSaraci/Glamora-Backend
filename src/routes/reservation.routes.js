@@ -8,14 +8,14 @@ const authMiddleware = require("../middleware/auth.middleware");
  * @swagger
  * tags:
  *   name: Reservations
- *   description: Salon Appointment Bookings Management
+ *   description: Client bookings and reservation management
  */
 
 /**
  * @swagger
  * /salons/{salonId}/reservations:
  *   post:
- *     summary: Create a new reservation for a salon (Authenticated clients only)
+ *     summary: Book an appointment (Authenticated Client/User only)
  *     tags: [Reservations]
  *     security:
  *       - bearerAuth: []
@@ -46,19 +46,19 @@ const authMiddleware = require("../middleware/auth.middleware");
  *               date:
  *                 type: string
  *                 format: date
- *                 description: Format YYYY-MM-DD
+ *                 description: YYYY-MM-DD format (e.g. 2026-05-28)
  *                 example: "2026-05-28"
  *               startTime:
  *                 type: string
- *                 description: Format HH:MM (e.g. 10:00)
+ *                 description: HH:MM format
  *                 example: "10:00"
  *     responses:
  *       201:
- *         description: Reservation created successfully
+ *         description: Appointment booked successfully
  *       400:
- *         description: Validation error or conflict
+ *         description: Bad request (slot booked, invalid date, unqualified staff, etc.)
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized (missing or invalid token)
  */
 router.post(
   "/:salonId/reservations",

@@ -1,14 +1,14 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-// CREATE RESERVATION
+// CREATE RESERVATION WITH SIMPLIFIED CONFLICT CHECK
 const createReservation = async (salonId, customerId, data) => {
   const targetDate = new Date(`${data.date}T00:00:00.000Z`);
   if (isNaN(targetDate.getTime())) {
     throw new Error("Invalid date format. Use YYYY-MM-DD");
   }
 
-  // 1. Fetch service details
+  // 1. Verify that the service exists
   const service = await prisma.service.findUnique({
     where: { id: Number(data.serviceId) }
   });
@@ -16,20 +16,18 @@ const createReservation = async (salonId, customerId, data) => {
     throw new Error("Service not found");
   }
 
-  // 2. Verify employee's qualification for this service
-  const qualification = await prisma.employeeService.findUnique({
+  // 2. Verify that the employee is qualified for this service
+  const qualification = await prisma.employeeService.findFirst({
     where: {
-      employeeId_serviceId: {
-        employeeId: Number(data.employeeId),
-        serviceId: Number(data.serviceId)
-      }
+      employeeId: Number(data.employeeId),
+      serviceId: Number(data.serviceId)
     }
   });
   if (!qualification) {
-    throw new Error("This employee is not qualified for the requested service");
+    throw new Error("Employee is not qualified to perform this service");
   }
 
-  // 3. Verify employee is scheduled to work on this day of the week
+  // 3. Verify that the employee is scheduled to work on this day of the week
   const dayOfWeek = targetDate.getUTCDay();
   const schedule = await prisma.workingHour.findFirst({
     where: {
@@ -38,34 +36,19 @@ const createReservation = async (salonId, customerId, data) => {
     }
   });
   if (!schedule) {
-    throw new Error("Employee does not work on this day of the week");
+    throw new Error("Employee is not working on this day");
   }
 
-  // Verify startTime fits within scheduled shift boundaries
-  const timeToMinutes = (t) => {
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m;
-  };
+  // 4. Calculate dynamic endTime based on startTime and service.duration
+  const [startHours, startMinutes] = data.startTime.split(":").map(Number);
+  const totalStartMinutes = startHours * 60 + startMinutes;
+  const totalEndMinutes = totalStartMinutes + service.duration;
+  
+  const endHours = Math.floor(totalEndMinutes / 60) % 24;
+  const endMins = totalEndMinutes % 60;
+  const calculatedEndTime = `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
 
-  const startMin = timeToMinutes(data.startTime);
-  const shiftStartMin = timeToMinutes(schedule.startTime);
-  const shiftEndMin = timeToMinutes(schedule.endTime);
-
-  if (startMin < shiftStartMin || startMin >= shiftEndMin) {
-    throw new Error("Requested start time is outside of employee working hours");
-  }
-
-  // 4. Calculate dynamic endTime (startTime + service.duration)
-  const endMinTotal = startMin + service.duration;
-  if (endMinTotal > shiftEndMin) {
-    throw new Error("Appointment duration exceeds employee working hours shift");
-  }
-
-  const endH = Math.floor(endMinTotal / 60) % 24;
-  const endM = endMinTotal % 60;
-  const endTime = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
-
-  // 5. Sequential Conflict Check: check for existing active bookings for this employee/time/date
+  // 5. SIMPLE CONFLICT CHECK: Verify if there is already an active booking at the same startTime
   const existingConflict = await prisma.reservation.findFirst({
     where: {
       employeeId: Number(data.employeeId),
@@ -78,10 +61,10 @@ const createReservation = async (salonId, customerId, data) => {
   });
 
   if (existingConflict) {
-    throw new Error("Time slot already booked for this employee");
+    throw new Error("This time slot is already booked for this employee");
   }
 
-  // 6. Create the reservation record
+  // 6. Save the reservation
   return await prisma.reservation.create({
     data: {
       salonId: Number(salonId),
@@ -90,7 +73,7 @@ const createReservation = async (salonId, customerId, data) => {
       serviceId: Number(data.serviceId),
       date: targetDate,
       startTime: data.startTime,
-      endTime: endTime,
+      endTime: calculatedEndTime,
       status: "PENDING"
     }
   });
