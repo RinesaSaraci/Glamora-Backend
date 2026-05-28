@@ -10,6 +10,7 @@ const adminRoutes = require("./routes/admin.routes");
 const salonRoutes = require("./routes/salon.routes");
 const serviceRoutes = require("./routes/service.routes");
 const employeeRoutes = require("./routes/employee.routes");
+const scheduleRoutes = require("./routes/schedule.routes");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -28,6 +29,7 @@ app.use("/admin", adminRoutes);
 app.use("/salons", salonRoutes);
 app.use("/salons", serviceRoutes);
 app.use("/salons", employeeRoutes);
+app.use("/salons", scheduleRoutes);
 
 // =======================
 // TEST ROUTES
