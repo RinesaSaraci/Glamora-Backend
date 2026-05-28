@@ -12,6 +12,7 @@ const serviceRoutes = require("./routes/service.routes");
 const employeeRoutes = require("./routes/employee.routes");
 const scheduleRoutes = require("./routes/schedule.routes");
 const availabilityRoutes = require("./routes/availability.routes");
+const reservationRoutes = require("./routes/reservation.routes");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -32,6 +33,7 @@ app.use("/salons", serviceRoutes);
 app.use("/salons", employeeRoutes);
 app.use("/salons", scheduleRoutes);
 app.use("/salons", availabilityRoutes);
+app.use("/salons", reservationRoutes);
 
 // =======================
 // TEST ROUTES
