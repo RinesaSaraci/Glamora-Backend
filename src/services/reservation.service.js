@@ -79,6 +79,75 @@ const createReservation = async (salonId, customerId, data) => {
   });
 };
 
+// GET ALL RESERVATIONS FOR A SALON
+const getSalonReservations = async (salonId) => {
+  return await prisma.reservation.findMany({
+    where: { salonId: Number(salonId) },
+    include: {
+      customer: { select: { id: true, name: true, email: true } },
+      employee: { select: { id: true, name: true } },
+      service: { select: { id: true, name: true, price: true } }
+    },
+    orderBy: [
+      { date: "desc" },
+      { startTime: "asc" }
+    ]
+  });
+};
+
+// GET ALL RESERVATIONS FOR A CUSTOMER
+const getCustomerReservations = async (customerId) => {
+  return await prisma.reservation.findMany({
+    where: { customerId: Number(customerId) },
+    include: {
+      salon: { select: { id: true, name: true, city: true } },
+      employee: { select: { id: true, name: true } },
+      service: { select: { id: true, name: true, price: true } }
+    },
+    orderBy: [
+      { date: "desc" },
+      { startTime: "asc" }
+    ]
+  });
+};
+
+// UPDATE RESERVATION STATUS WITH SECURITY CHECKS
+const updateReservationStatus = async (reservationId, newStatus, userId, userRole) => {
+  // Fetch reservation and include salon details to check salon ownerId
+  const reservation = await prisma.reservation.findUnique({
+    where: { id: Number(reservationId) },
+    include: { salon: true }
+  });
+
+  if (!reservation) {
+    throw new Error("Reservation not found");
+  }
+
+  const isSalonOwner = reservation.salon.ownerId === Number(userId);
+  const isCustomer = reservation.customerId === Number(userId);
+  const isAdmin = userRole === "ADMIN";
+
+  // 1. Authorization check: must be admin, salon owner, or the customer who booked it
+  if (!isAdmin && !isSalonOwner && !isCustomer) {
+    throw new Error("Forbidden - You do not have access to this reservation");
+  }
+
+  // 2. Client restriction: Clients can only CANCEL their own reservation
+  if (!isAdmin && !isSalonOwner && isCustomer) {
+    if (newStatus !== "CANCELLED") {
+      throw new Error("Clients are only authorized to cancel their reservations");
+    }
+  }
+
+  return await prisma.reservation.update({
+    where: { id: Number(reservationId) },
+    data: { status: newStatus }
+  });
+};
+
 module.exports = {
-  createReservation
+  createReservation,
+  getSalonReservations,
+  getCustomerReservations,
+  updateReservationStatus
 };
