@@ -8,6 +8,7 @@ const { swaggerUi, specs } = require("./swagger");
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const salonRoutes = require("./routes/salon.routes");
+const serviceRoutes = require("./routes/service.routes");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/salons", salonRoutes);
+app.use("/salons", serviceRoutes);
 
 // =======================
 // TEST ROUTES
