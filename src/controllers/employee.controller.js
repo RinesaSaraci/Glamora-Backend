@@ -25,8 +25,8 @@ const getEmployeesBySalon = async (req, res) => {
 // GET BY ID
 const getEmployeeById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const employee = await employeeService.getEmployeeById(id);
+    const { salonId, id } = req.params;
+    const employee = await employeeService.getEmployeeById(salonId, id);
     if (!employee) {
       return res.status(404).json({ error: "Employee not found" });
     }
@@ -39,8 +39,8 @@ const getEmployeeById = async (req, res) => {
 // UPDATE
 const updateEmployee = async (req, res) => {
   try {
-    const { id } = req.params;
-    const employee = await employeeService.updateEmployee(id, req.body);
+    const { salonId, id } = req.params;
+    const employee = await employeeService.updateEmployee(salonId, id, req.body);
     res.json(employee);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -50,8 +50,8 @@ const updateEmployee = async (req, res) => {
 // DELETE
 const deleteEmployee = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await employeeService.deleteEmployee(id);
+    const { salonId, id } = req.params;
+    const result = await employeeService.deleteEmployee(salonId, id);
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });

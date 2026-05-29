@@ -26,22 +26,25 @@ const getEmployeesBySalon = async (salonId) => {
   });
 };
 
-// GET EMPLOYEE BY ID
-const getEmployeeById = async (id) => {
-  return await prisma.employee.findUnique({
-    where: { id: Number(id) },
+// GET EMPLOYEE BY ID — scoped to salon to prevent cross-tenant reads
+const getEmployeeById = async (salonId, id) => {
+  return await prisma.employee.findFirst({
+    where: { id: Number(id), salonId: Number(salonId) },
     include: {
       services: {
-        include: {
-          service: true,
-        },
+        include: { service: true },
       },
     },
   });
 };
 
-// UPDATE EMPLOYEE
-const updateEmployee = async (id, data) => {
+// UPDATE EMPLOYEE — verify employee belongs to this salon before mutating
+const updateEmployee = async (salonId, id, data) => {
+  const existing = await prisma.employee.findFirst({
+    where: { id: Number(id), salonId: Number(salonId) },
+  });
+  if (!existing) throw new Error("Employee not found in this salon");
+
   return await prisma.employee.update({
     where: { id: Number(id) },
     data: {
@@ -52,11 +55,14 @@ const updateEmployee = async (id, data) => {
   });
 };
 
-// DELETE EMPLOYEE
-const deleteEmployee = async (id) => {
-  await prisma.employee.delete({
-    where: { id: Number(id) },
+// DELETE EMPLOYEE — verify employee belongs to this salon before mutating
+const deleteEmployee = async (salonId, id) => {
+  const existing = await prisma.employee.findFirst({
+    where: { id: Number(id), salonId: Number(salonId) },
   });
+  if (!existing) throw new Error("Employee not found in this salon");
+
+  await prisma.employee.delete({ where: { id: Number(id) } });
   return { message: "Employee deleted successfully" };
 };
 

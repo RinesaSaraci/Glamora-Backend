@@ -12,7 +12,7 @@ const deleteUser = async (id) => {
 };
 
 /**
- * GET ALL USERS (opsionale)
+ * GET ALL USERS
  */
 const getAllUsers = async () => {
   return await prisma.user.findMany({
@@ -21,7 +21,10 @@ const getAllUsers = async () => {
       name: true,
       email: true,
       role: true,
+      tenantId: true,
+      createdAt: true,
     },
+    orderBy: { createdAt: "desc" },
   });
 };
 

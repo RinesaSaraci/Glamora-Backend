@@ -22,21 +22,25 @@ const getServicesBySalon = async (salonId) => {
   });
 };
 
-// GET SERVICE BY ID
-const getServiceById = async (id) => {
-  return await prisma.service.findUnique({
+// GET SERVICE BY ID — scoped to salon to prevent cross-tenant reads
+const getServiceById = async (salonId, id) => {
+  return await prisma.service.findFirst({
     where: {
       id: Number(id),
+      salonId: Number(salonId),
     },
   });
 };
 
-// UPDATE SERVICE
-const updateService = async (id, data) => {
+// UPDATE SERVICE — verify service belongs to this salon before mutating
+const updateService = async (salonId, id, data) => {
+  const existing = await prisma.service.findFirst({
+    where: { id: Number(id), salonId: Number(salonId) },
+  });
+  if (!existing) throw new Error("Service not found in this salon");
+
   return await prisma.service.update({
-    where: {
-      id: Number(id),
-    },
+    where: { id: Number(id) },
     data: {
       ...(data.name && { name: data.name }),
       ...(data.description !== undefined && { description: data.description }),
@@ -46,13 +50,14 @@ const updateService = async (id, data) => {
   });
 };
 
-// DELETE SERVICE
-const deleteService = async (id) => {
-  await prisma.service.delete({
-    where: {
-      id: Number(id),
-    },
+// DELETE SERVICE — verify service belongs to this salon before mutating
+const deleteService = async (salonId, id) => {
+  const existing = await prisma.service.findFirst({
+    where: { id: Number(id), salonId: Number(salonId) },
   });
+  if (!existing) throw new Error("Service not found in this salon");
+
+  await prisma.service.delete({ where: { id: Number(id) } });
   return { message: "Service deleted successfully" };
 };
 

@@ -25,8 +25,8 @@ const getServicesBySalon = async (req, res) => {
 // GET BY ID
 const getServiceById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const service = await serviceService.getServiceById(id);
+    const { salonId, id } = req.params;
+    const service = await serviceService.getServiceById(salonId, id);
     if (!service) {
       return res.status(404).json({ error: "Service not found" });
     }
@@ -39,8 +39,8 @@ const getServiceById = async (req, res) => {
 // UPDATE
 const updateService = async (req, res) => {
   try {
-    const { id } = req.params;
-    const service = await serviceService.updateService(id, req.body);
+    const { salonId, id } = req.params;
+    const service = await serviceService.updateService(salonId, id, req.body);
     res.json(service);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -50,8 +50,8 @@ const updateService = async (req, res) => {
 // DELETE
 const deleteService = async (req, res) => {
   try {
-    const { id } = req.params;
-    const result = await serviceService.deleteService(id);
+    const { salonId, id } = req.params;
+    const result = await serviceService.deleteService(salonId, id);
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });

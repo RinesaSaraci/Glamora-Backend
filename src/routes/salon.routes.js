@@ -5,8 +5,8 @@ const router = express.Router();
 const salonController = require("../controllers/salon.controller");
 
 const authMiddleware = require("../middleware/auth.middleware");
-
 const roleMiddleware = require("../middleware/role.middleware");
+const { verifySalonOwnership } = require("../middleware/verifySalonOwnership");
 
 /**
  * @swagger
@@ -119,7 +119,7 @@ router.get("/:id", salonController.getSalonById);
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware(["ADMIN"]),
+  roleMiddleware(["ADMIN", "OWNER", "SUPERADMIN"]),
   salonController.updateSalon
 );
 

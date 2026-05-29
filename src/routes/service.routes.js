@@ -3,7 +3,7 @@ const router = express.Router();
 
 const serviceController = require("../controllers/service.controller");
 const authMiddleware = require("../middleware/auth.middleware");
-const { verifySalonOwnership } = require("../middleware/tenant.middleware");
+const { verifySalonOwnership } = require("../middleware/verifySalonOwnership");
 
 /**
  * @swagger

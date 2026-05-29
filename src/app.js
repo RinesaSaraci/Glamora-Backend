@@ -5,6 +5,7 @@ const { swaggerUi, specs } = require("./swagger");
 // ROUTES
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
+const tenantRoutes = require("./routes/tenant.routes");
 const salonRoutes = require("./routes/salon.routes");
 const serviceRoutes = require("./routes/service.routes");
 const employeeRoutes = require("./routes/employee.routes");
@@ -25,6 +26,7 @@ app.use(express.json());
 // =======================
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
+app.use("/tenants", tenantRoutes);
 app.use("/salons", salonRoutes);
 app.use("/salons", serviceRoutes);
 app.use("/salons", employeeRoutes);

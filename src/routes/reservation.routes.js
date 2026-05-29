@@ -89,7 +89,7 @@ router.post(
 router.get(
   "/:salonId/reservations",
   authMiddleware,
-  require("../middleware/tenant.middleware").verifySalonOwnership,
+  require("../middleware/verifySalonOwnership").verifySalonOwnership,
   reservationController.getSalonReservations
 );
 

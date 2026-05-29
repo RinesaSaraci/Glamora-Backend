@@ -10,17 +10,39 @@ datasource db {
 url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+  OWNER
+  SUPERADMIN
+}
+
+model Tenant {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  salons    Salon[]
+  users     User[]
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
   password  String
-  role      String   @default("USER")
+  role      UserRole @default(USER)
 
-  salons    Salon[]
+  tenantId  Int?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  salons       Salon[]
   reservations Reservation[]
 
   createdAt DateTime @default(now())
+
+  @@index([tenantId])
 }
 
 model Salon {
@@ -32,11 +54,16 @@ model Salon {
   ownerId     Int
   owner       User     @relation(fields: [ownerId], references: [id])
 
+  tenantId    Int?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
   services     Service[]
   employees    Employee[]
   reservations Reservation[]
 
   createdAt   DateTime @default(now())
+
+  @@index([tenantId])
 }
 
 model Service {

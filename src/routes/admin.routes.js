@@ -26,8 +26,27 @@ const adminController = require("../controllers/admin.controller");
 router.delete(
   "/users/:id",
   authMiddleware,
-  roleMiddleware(["ADMIN"]),
+  roleMiddleware(["ADMIN", "SUPERADMIN"]),
   adminController.deleteUser
+);
+
+/**
+ * @swagger
+ * /admin/users:
+ *   get:
+ *     summary: Get all users (ADMIN/SUPERADMIN only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ */
+router.get(
+  "/users",
+  authMiddleware,
+  roleMiddleware(["ADMIN", "SUPERADMIN"]),
+  adminController.getAllUsers
 );
 
 module.exports = router;

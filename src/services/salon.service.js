@@ -1,49 +1,40 @@
 const prisma = require("../lib/prisma");
 
 // CREATE SALON
+// ownerId defaults to the creator (ADMIN). Pass data.ownerId to assign an OWNER user.
 const createSalon = async (data, userId) => {
   return await prisma.salon.create({
     data: {
       name: data.name,
       description: data.description,
       city: data.city,
-      ownerId: userId,
+      ownerId: data.ownerId ? Number(data.ownerId) : userId,
+      ...(data.tenantId && { tenantId: Number(data.tenantId) }),
     },
   });
 };
 
 // GET ALL SALONS
-const getAllSalons = async (query) => {
+// Pass tenantId to restrict results to a single tenant.
+// SUPERADMIN (tenantId === null) receives all salons unfiltered.
+const getAllSalons = async (query, tenantId = null) => {
   return await prisma.salon.findMany({
     where: {
+      ...(tenantId && { tenantId: Number(tenantId) }),
+
       ...(query?.search && {
         OR: [
-          {
-            name: {
-              contains: query.search,
-              mode: "insensitive",
-            },
-          },
-          {
-            city: {
-              contains: query.search,
-              mode: "insensitive",
-            },
-          },
+          { name: { contains: query.search, mode: "insensitive" } },
+          { city: { contains: query.search, mode: "insensitive" } },
         ],
       }),
 
       ...(query?.city && {
-        city: {
-          contains: query.city,
-          mode: "insensitive",
-        },
+        city: { contains: query.city, mode: "insensitive" },
       }),
     },
     include: {
-      owner: {
-        select: { id: true, name: true, email: true },
-      },
+      owner: { select: { id: true, name: true, email: true } },
     },
   });
 };
@@ -64,9 +55,12 @@ const updateSalon = async (id, data, user) => {
   });
   if (!salon) throw new Error("Salon not found");
 
-  if (user.role !== "ADMIN" && salon.ownerId !== user.id) {
-    throw new Error("Forbidden");
-  }
+  const canEdit =
+    user.role === "SUPERADMIN" ||
+    user.role === "ADMIN" ||
+    salon.ownerId === user.id;
+  if (!canEdit) throw new Error("Forbidden");
+
   return await prisma.salon.update({
     where: { id: Number(id) },
     data,
@@ -79,12 +73,14 @@ const deleteSalon = async (id, user) => {
     where: { id: Number(id) },
   });
   if (!salon) throw new Error("Salon not found");
-  if (user.role !== "ADMIN" && salon.ownerId !== user.id) {
-    throw new Error("Forbidden");
-  }
-  await prisma.salon.delete({
-    where: { id: Number(id) },
-  });
+
+  const canDelete =
+    user.role === "SUPERADMIN" ||
+    user.role === "ADMIN" ||
+    salon.ownerId === user.id;
+  if (!canDelete) throw new Error("Forbidden");
+
+  await prisma.salon.delete({ where: { id: Number(id) } });
   return { message: "Salon deleted" };
 };
 
