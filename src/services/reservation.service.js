@@ -1,5 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 
 // CREATE RESERVATION WITH SIMPLIFIED CONFLICT CHECK
 const createReservation = async (salonId, customerId, data) => {

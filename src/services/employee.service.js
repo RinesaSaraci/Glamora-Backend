@@ -1,5 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 
 // CREATE EMPLOYEE
 const createEmployee = async (salonId, data) => {

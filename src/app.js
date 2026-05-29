@@ -1,7 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const { PrismaClient } = require("@prisma/client");
-
 const { swaggerUi, specs } = require("./swagger");
 
 // ROUTES
@@ -15,7 +13,6 @@ const availabilityRoutes = require("./routes/availability.routes");
 const reservationRoutes = require("./routes/reservation.routes");
 
 const app = express();
-const prisma = new PrismaClient();
 
 // =======================
 // GLOBAL MIDDLEWARE

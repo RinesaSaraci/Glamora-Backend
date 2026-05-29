@@ -1,5 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../lib/prisma");
 
 // SET WEEKLY SCHEDULES (Bulk Sync)
 const setSchedules = async (employeeId, salonId, schedulesData) => {
