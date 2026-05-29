@@ -12,6 +12,13 @@ const employeeRoutes = require("./routes/employee.routes");
 const scheduleRoutes = require("./routes/schedule.routes");
 const availabilityRoutes = require("./routes/availability.routes");
 const reservationRoutes = require("./routes/reservation.routes");
+const categoryRoutes = require("./routes/category.routes");
+const reviewRoutes = require("./routes/review.routes");
+const promotionRoutes = require("./routes/promotion.routes");
+const productRoutes = require("./routes/product.routes");
+const giftCardRoutes = require("./routes/giftcard.routes");
+const waitlistRoutes = require("./routes/waitlist.routes");
+const notificationRoutes = require("./routes/notification.routes");
 
 const app = express();
 
@@ -33,26 +40,19 @@ app.use("/salons", employeeRoutes);
 app.use("/salons", scheduleRoutes);
 app.use("/salons", availabilityRoutes);
 app.use("/salons", reservationRoutes);
+app.use("/salons", categoryRoutes);
+app.use("/salons", reviewRoutes);
+app.use("/salons", promotionRoutes);
+app.use("/salons", productRoutes);
+app.use("/salons", giftCardRoutes);
+app.use("/salons", waitlistRoutes);
+app.use("/notifications", notificationRoutes);
 
 // =======================
-// TEST ROUTES
+// HEALTH CHECK
 // =======================
 app.get("/", (req, res) => {
   res.send("Glamora API running...");
-});
-
-// GET ALL USERS
-app.get("/users", async (req, res) => {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-    },
-  });
-
-  res.json(users);
 });
 
 // =======================
