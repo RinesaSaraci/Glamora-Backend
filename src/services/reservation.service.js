@@ -58,20 +58,38 @@ const createReservation = async (salonId, customerId, data) => {
     throw new Error(`Booking must be within employee shift hours: ${schedule.startTime} - ${schedule.endTime}`);
   }
 
-  // 5. SIMPLE CONFLICT CHECK: Verify if there is already an active booking at the same startTime
-  const existingConflict = await prisma.reservation.findFirst({
-    where: {
-      employeeId: Number(data.employeeId),
-      date: targetDate,
-      startTime: data.startTime,
-      status: {
-        not: "CANCELLED"
-      }
-    }
+  // 5. OVERLAP CONFLICT CHECK: existingStart < newEnd AND existingEnd > newStart
+  // Back-to-back bookings (existingEnd == newStart) are intentionally allowed.
+  const toMinutes = (t) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+ const startOfDay = new Date(`${data.date}T00:00:00.000Z`);
+const endOfDay = new Date(`${data.date}T23:59:59.999Z`);
+
+const activeReservations = await prisma.reservation.findMany({
+  where: {
+    employeeId: Number(data.employeeId),
+    date: {
+      gte: startOfDay,
+      lte: endOfDay
+    },
+    status: { not: "CANCELLED" }
+  },
+  select: { startTime: true, endTime: true }
+});
+
+  const hasConflict = activeReservations.some((r) => {
+    const exStart = toMinutes(r.startTime);
+    const exEnd = toMinutes(r.endTime);
+    return exStart < totalEndMinutes && exEnd > totalStartMinutes;
   });
 
-  if (existingConflict) {
-    throw new Error("This time slot is already booked for this employee");
+  if (hasConflict) {
+    const error = new Error("This time slot overlaps with an existing booking for this employee");
+    error.statusCode = 409;
+    throw error;
   }
 
   // 6. Save the reservation
