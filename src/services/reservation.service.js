@@ -1,5 +1,6 @@
 const prisma = require("../lib/prisma");
 const AppError = require("../lib/AppError");
+const { sendConfirmationInBackground } = require("../jobs/emailService");
 
 // CREATE RESERVATION WITH SIMPLIFIED CONFLICT CHECK
 const createReservation = async (salonId, customerId, data) => {
@@ -92,7 +93,7 @@ const activeReservations = await prisma.reservation.findMany({
   }
 
   // 6. Save the reservation
-  return await prisma.reservation.create({
+  const reservation = await prisma.reservation.create({
     data: {
       salonId: Number(salonId),
       customerId: Number(customerId),
@@ -102,8 +103,19 @@ const activeReservations = await prisma.reservation.findMany({
       startTime: data.startTime,
       endTime: calculatedEndTime,
       status: "PENDING"
+    },
+    include: {
+      customer: { select: { id: true, name: true, email: true } },
+      employee: { select: { id: true, name: true } },
+      service: { select: { id: true, name: true } },
+      salon: { select: { id: true, name: true, city: true } },
     }
   });
+
+  // 7. Dërgo email konfirmimi në background — nuk e pret requesti
+  sendConfirmationInBackground(reservation);
+
+  return reservation;
 };
 
 // GET ALL RESERVATIONS FOR A SALON
