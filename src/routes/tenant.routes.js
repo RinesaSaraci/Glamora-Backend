@@ -55,7 +55,7 @@ router.post("/", authMiddleware, roleMiddleware(["SUPERADMIN"]), tenantControlle
  *       200:
  *         description: List of tenants
  */
-router.get("/", authMiddleware, roleMiddleware(["SUPERADMIN"]), tenantController.getAllTenants);
+router.get("/", authMiddleware, roleMiddleware(["SUPERADMIN", "ADMIN"]), tenantController.getAllTenants);
 
 /**
  * @swagger

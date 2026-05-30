@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --testTimeout=30000 --forceExit",
     "dev": "nodemon src/app.js"
   },
   "prisma": {
@@ -41,7 +41,9 @@
   },
   "devDependencies": {
     "@prisma/client": "^6.19.3",
+    "jest": "^30.4.2",
     "nodemon": "^3.1.14",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "supertest": "^7.2.2"
   }
 }
