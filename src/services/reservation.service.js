@@ -1,4 +1,5 @@
 const prisma = require("../lib/prisma");
+const AppError = require("../lib/AppError");
 
 // CREATE RESERVATION WITH SIMPLIFIED CONFLICT CHECK
 const createReservation = async (salonId, customerId, data) => {
@@ -87,9 +88,7 @@ const activeReservations = await prisma.reservation.findMany({
   });
 
   if (hasConflict) {
-    const error = new Error("This time slot overlaps with an existing booking for this employee");
-    error.statusCode = 409;
-    throw error;
+    throw new AppError("This time slot overlaps with an existing booking for this employee", 409);
   }
 
   // 6. Save the reservation
