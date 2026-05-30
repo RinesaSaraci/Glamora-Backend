@@ -4,15 +4,26 @@ const cache = require("../lib/cache");
 // CREATE SALON
 // ownerId defaults to the creator (ADMIN). Pass data.ownerId to assign an OWNER user.
 const createSalon = async (data, userId) => {
+  const ownerId = data.ownerId ? Number(data.ownerId) : userId;
+
   const salon = await prisma.salon.create({
     data: {
       name: data.name,
       description: data.description,
       city: data.city,
-      ownerId: data.ownerId ? Number(data.ownerId) : userId,
+      ownerId,
       ...(data.tenantId && { tenantId: Number(data.tenantId) }),
     },
   });
+
+  // Nëse ownerId është ndryshe nga krijuesi, bëje atë OWNER automatikisht
+  if (data.ownerId && Number(data.ownerId) !== userId) {
+    await prisma.user.update({
+      where: { id: ownerId },
+      data: { role: "OWNER" },
+    });
+  }
+
   await cache.del("glamora:salons:all");
   return salon;
 };

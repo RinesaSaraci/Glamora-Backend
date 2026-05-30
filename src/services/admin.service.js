@@ -3,11 +3,20 @@ const prisma = require("../lib/prisma");
 /**
  * DELETE USER
  */
-const deleteUser = async (id) => {
-  await prisma.user.delete({
-    where: { id: Number(id) },
-  });
+const deleteUser = async (id, callerRole) => {
+  const target = await prisma.user.findUnique({ where: { id: Number(id) } });
+  if (!target) throw new Error("User not found");
 
+  if (target.role === "SUPERADMIN" && callerRole !== "SUPERADMIN") {
+    throw new Error("Nuk keni qasje për të fshirë këtë përdorues.");
+  }
+
+  const ownedSalons = await prisma.salon.count({ where: { ownerId: Number(id) } });
+  if (ownedSalons > 0) {
+    throw new Error("Ky përdorues zotëron salone. Fshi ose ricakto salonet fillimisht.");
+  }
+
+  await prisma.user.delete({ where: { id: Number(id) } });
   return { message: "User deleted" };
 };
 
