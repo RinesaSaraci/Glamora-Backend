@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const morgan = require("morgan");
 const { swaggerUi, specs } = require("./swagger");
 
 // ROUTES
@@ -26,6 +27,7 @@ const app = express();
 // =======================
 // GLOBAL MIDDLEWARE
 // =======================
+app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
 
