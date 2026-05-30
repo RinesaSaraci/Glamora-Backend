@@ -31,13 +31,30 @@ const getAllUsers = async () => {
       email: true,
       role: true,
       tenantId: true,
+      tenant: { select: { id: true, name: true } },
       createdAt: true,
     },
     orderBy: { createdAt: "desc" },
   });
 };
 
+const updateUser = async (id, data) => {
+  const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+  if (!user) throw new Error("User not found");
+
+  return await prisma.user.update({
+    where: { id: Number(id) },
+    data: {
+      ...(data.name && { name: data.name }),
+      ...(data.role && { role: data.role }),
+      ...(data.tenantId !== undefined && { tenantId: data.tenantId ? Number(data.tenantId) : null }),
+    },
+    select: { id: true, name: true, email: true, role: true, tenantId: true },
+  });
+};
+
 module.exports = {
   deleteUser,
   getAllUsers,
+  updateUser,
 };

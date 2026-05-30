@@ -84,10 +84,26 @@ const updateSalon = async (id, data, user) => {
     salon.ownerId === user.id;
   if (!canEdit) throw new Error("Forbidden");
 
+  const updateData = {
+    ...(data.name && { name: data.name }),
+    ...(data.city && { city: data.city }),
+    ...(data.description !== undefined && { description: data.description }),
+    ...(data.ownerId && { ownerId: Number(data.ownerId) }),
+    ...(data.tenantId && { tenantId: Number(data.tenantId) }),
+  };
+
   const updated = await prisma.salon.update({
     where: { id: Number(id) },
-    data,
+    data: updateData,
   });
+
+  // Nëse ownerId ndryshoi — cakto rolin OWNER automatikisht
+  if (data.ownerId && Number(data.ownerId) !== salon.ownerId) {
+    await prisma.user.update({
+      where: { id: Number(data.ownerId) },
+      data: { role: "OWNER" },
+    });
+  }
   await cache.del("glamora:salons:all");
   return updated;
 };

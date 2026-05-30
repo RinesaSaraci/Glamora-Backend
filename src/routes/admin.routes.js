@@ -49,4 +49,11 @@ router.get(
   adminController.getAllUsers
 );
 
+router.patch(
+  "/users/:id",
+  authMiddleware,
+  roleMiddleware(["ADMIN", "SUPERADMIN"]),
+  adminController.updateUser
+);
+
 module.exports = router;

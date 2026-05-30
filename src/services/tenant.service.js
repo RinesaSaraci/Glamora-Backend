@@ -11,6 +11,12 @@ const getAllTenants = async () => {
   return await prisma.tenant.findMany({
     include: {
       _count: { select: { salons: true, users: true } },
+      salons: {
+        select: { id: true, name: true, city: true, owner: { select: { id: true, name: true } } }
+      },
+      users: {
+        select: { id: true, name: true, email: true, role: true }
+      },
     },
     orderBy: { createdAt: "asc" },
   });
