@@ -1,9 +1,10 @@
 const prisma = require("../lib/prisma");
+const cache = require("../lib/cache");
 
 // CREATE SALON
 // ownerId defaults to the creator (ADMIN). Pass data.ownerId to assign an OWNER user.
 const createSalon = async (data, userId) => {
-  return await prisma.salon.create({
+  const salon = await prisma.salon.create({
     data: {
       name: data.name,
       description: data.description,
@@ -12,23 +13,31 @@ const createSalon = async (data, userId) => {
       ...(data.tenantId && { tenantId: Number(data.tenantId) }),
     },
   });
+  await cache.del("glamora:salons:all");
+  return salon;
 };
 
 // GET ALL SALONS
 // Pass tenantId to restrict results to a single tenant.
 // SUPERADMIN (tenantId === null) receives all salons unfiltered.
 const getAllSalons = async (query, tenantId = null) => {
-  return await prisma.salon.findMany({
+  const hasFilters = query?.search || query?.city || tenantId;
+  const cacheKey = "glamora:salons:all";
+
+  if (!hasFilters) {
+    const cached = await cache.get(cacheKey);
+    if (cached) return cached;
+  }
+
+  const result = await prisma.salon.findMany({
     where: {
       ...(tenantId && { tenantId: Number(tenantId) }),
-
       ...(query?.search && {
         OR: [
           { name: { contains: query.search, mode: "insensitive" } },
           { city: { contains: query.search, mode: "insensitive" } },
         ],
       }),
-
       ...(query?.city && {
         city: { contains: query.city, mode: "insensitive" },
       }),
@@ -37,6 +46,9 @@ const getAllSalons = async (query, tenantId = null) => {
       owner: { select: { id: true, name: true, email: true } },
     },
   });
+
+  if (!hasFilters) await cache.set(cacheKey, result, 60);
+  return result;
 };
 
 // GET SALON BY ID
@@ -61,10 +73,12 @@ const updateSalon = async (id, data, user) => {
     salon.ownerId === user.id;
   if (!canEdit) throw new Error("Forbidden");
 
-  return await prisma.salon.update({
+  const updated = await prisma.salon.update({
     where: { id: Number(id) },
     data,
   });
+  await cache.del("glamora:salons:all");
+  return updated;
 };
 
 // DELETE SALON
@@ -81,6 +95,7 @@ const deleteSalon = async (id, user) => {
   if (!canDelete) throw new Error("Forbidden");
 
   await prisma.salon.delete({ where: { id: Number(id) } });
+  await cache.del("glamora:salons:all");
   return { message: "Salon deleted" };
 };
 
